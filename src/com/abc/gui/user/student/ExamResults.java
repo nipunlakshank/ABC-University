@@ -1,0 +1,340 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ */
+package com.abc.gui.user.student;
+
+import com.abc.gui.MainPanel;
+import static com.abc.gui.Splash.APP;
+import com.abc.model.dao.DegreeDAO;
+import com.abc.model.dao.DegreeStudentDAO;
+import com.abc.model.dao.EmailDAO;
+import com.abc.model.dao.GpaDAO;
+import com.abc.model.dao.ResultsViewDAO;
+import com.abc.model.dao.StudentDAO;
+import com.abc.model.dto.ResultsViewDTO;
+import com.abc.service.TableEditor;
+import java.awt.Color;
+import java.text.DecimalFormat;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ *
+ * @author nipun
+ */
+public class ExamResults extends MainPanel {
+
+    private final ResultsViewDAO resultsDAO;
+    private final EmailDAO emailDAO;
+    private final StudentDAO studentDAO;
+    private final DegreeStudentDAO degStuDAO;
+    private final DegreeDAO degDAO;
+    private int studentId = 0;
+    private List<ResultsViewDTO> views;
+
+    /**
+     * Creates new form ExamResults
+     */
+    public ExamResults() {
+        super(ExamResults.class);
+        initComponents();
+        resultsDAO = new ResultsViewDAO();
+        emailDAO = new EmailDAO();
+        studentDAO = new StudentDAO();
+        degStuDAO = new DegreeStudentDAO();
+        degDAO = new DegreeDAO();
+
+        formatTables();
+
+        try {
+            studentId = studentDAO.get(emailDAO.getEmail(APP.user.getEmailId())).getId();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        loadDegrees();
+        loadExams();
+        calculateGpa();
+    }
+
+    private void calculateGpa() {
+        try {
+            int degId = degDAO.getId(cbDegrees.getSelectedItem() + "");
+            GpaDAO gpaDao = new GpaDAO();
+            double gpa = degId == 0 ? 0 : gpaDao.getGpa(studentId, degId);
+            DecimalFormat df = new DecimalFormat();
+            df.setMaximumFractionDigits(2);
+            lblGpa.setText(df.format(gpa) + "");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void loadDegrees() {
+        try {
+            DefaultComboBoxModel dcb = new DefaultComboBoxModel();
+
+            List<String> degrees = degStuDAO.getDegrees(studentId);
+            for (String degree : degrees) {
+                dcb.addElement(degree);
+            }
+
+            cbDegrees.setModel(dcb);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void filter() {
+        String inExamCode = txtExamCode.getText();
+        String inSubject = txtSubject.getText();
+
+        List<ResultsViewDTO> filteredViews = views.parallelStream()
+                .filter(view -> view.getExamCode().toLowerCase().contains(inExamCode.toLowerCase()) && view.getSubject().toLowerCase().contains(inSubject.toLowerCase()))
+                .sorted(Comparator.comparingInt(ResultsViewDTO::getExamId))
+                .collect(Collectors.toList());
+
+        DefaultTableModel dtm = (DefaultTableModel) table.getModel();
+        dtm.setRowCount(0);
+
+        filteredViews.forEach(view -> dtm.addRow(new Object[]{view.getExamId(), view.getExamCode(), view.getSubject(), view.getCredits(), view.getMarks(), view.getGrade()}));
+    }
+
+    private void loadExams() {
+        try {
+
+            DefaultTableModel dtm = (DefaultTableModel) table.getModel();
+            dtm.setRowCount(0);
+
+            views = resultsDAO.getViews(studentId, degDAO.getId(cbDegrees.getSelectedItem() + ""));
+            for (ResultsViewDTO view : views) {
+                dtm.addRow(new Object[]{view.getExamId(), view.getExamCode(), view.getSubject(), view.getCredits(), view.getMarks(), view.getGrade()});
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void formatTables() {
+        TableEditor.setTableHeaders(table, Color.WHITE, new Color(0, 153, 153));
+
+        TableEditor.setColumnRenderer(table, SwingConstants.LEFT, 0);
+        TableEditor.setColumnRenderer(table, SwingConstants.CENTER, 1);
+        TableEditor.setColumnRenderer(table, SwingConstants.CENTER, 2);
+        TableEditor.setColumnRenderer(table, SwingConstants.CENTER, 3);
+        TableEditor.setColumnRenderer(table, SwingConstants.CENTER, 4);
+        TableEditor.setColumnRenderer(table, SwingConstants.CENTER, 5);
+
+        TableEditor.setMaxColumnWidth(table, 0, 50);
+        TableEditor.setPreferredColumnWidth(table, 2, 300);
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        txtExamCode = new javax.swing.JTextField();
+        txtSubject = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        btnClearExamCode = new javax.swing.JButton();
+        btnClearSubjectCode = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        lblGpa = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        cbDegrees = new javax.swing.JComboBox<>();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        table = new javax.swing.JTable();
+
+        jLabel1.setText("Exam Code:");
+
+        txtExamCode.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtExamCodeKeyReleased(evt);
+            }
+        });
+
+        txtSubject.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtSubjectKeyReleased(evt);
+            }
+        });
+
+        jLabel2.setText("Subject:");
+
+        btnClearExamCode.setBackground(new java.awt.Color(51, 51, 51));
+        btnClearExamCode.setFont(new java.awt.Font("Comic Sans MS", 0, 13)); // NOI18N
+        btnClearExamCode.setForeground(new java.awt.Color(255, 255, 255));
+        btnClearExamCode.setText("Clear");
+
+        btnClearSubjectCode.setBackground(new java.awt.Color(51, 51, 51));
+        btnClearSubjectCode.setFont(new java.awt.Font("Comic Sans MS", 0, 13)); // NOI18N
+        btnClearSubjectCode.setForeground(new java.awt.Color(255, 255, 255));
+        btnClearSubjectCode.setText("Clear");
+
+        jLabel3.setFont(new java.awt.Font("Comic Sans MS", 1, 14)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 102, 0));
+        jLabel3.setText("Current GPA:");
+
+        lblGpa.setFont(new java.awt.Font("Comic Sans MS", 0, 14)); // NOI18N
+        lblGpa.setForeground(new java.awt.Color(255, 51, 0));
+        lblGpa.setText("0.0");
+
+        jLabel4.setText("Degree:");
+
+        cbDegrees.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " " }));
+        cbDegrees.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbDegreesItemStateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtExamCode))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtSubject, javax.swing.GroupLayout.PREFERRED_SIZE, 363, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btnClearExamCode)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cbDegrees, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btnClearSubjectCode)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 271, Short.MAX_VALUE)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(lblGpa, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2});
+
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(txtExamCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnClearExamCode)
+                        .addComponent(cbDegrees, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(txtSubject, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnClearSubjectCode))
+                        .addGap(26, 26, 26))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3)
+                            .addComponent(lblGpa))
+                        .addContainerGap())))
+        );
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel3, lblGpa});
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {btnClearExamCode, jLabel4});
+
+        table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
+            },
+            new String [] {
+                "Id", "Exam Code", "Subject", "Credits", "Marks", "Grade"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(table);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 492, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void txtExamCodeKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtExamCodeKeyReleased
+        filter();
+    }//GEN-LAST:event_txtExamCodeKeyReleased
+
+    private void txtSubjectKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSubjectKeyReleased
+        filter();
+    }//GEN-LAST:event_txtSubjectKeyReleased
+
+    private void cbDegreesItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbDegreesItemStateChanged
+        loadExams();
+        filter();
+        calculateGpa();
+    }//GEN-LAST:event_cbDegreesItemStateChanged
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnClearExamCode;
+    private javax.swing.JButton btnClearSubjectCode;
+    private javax.swing.JComboBox<String> cbDegrees;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblGpa;
+    private javax.swing.JTable table;
+    private javax.swing.JTextField txtExamCode;
+    private javax.swing.JTextField txtSubject;
+    // End of variables declaration//GEN-END:variables
+}
